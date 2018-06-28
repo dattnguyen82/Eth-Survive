@@ -49,7 +49,7 @@ contract Survive is  Withdrawable, Pausable, Refundable {
         uint balance = msg.value.sub(entryFee);
         playerAddresses.push(msg.sender);
         playerMap[msg.sender] = Player(msg.sender, true, false, 0,  0, balance, true);
-        emit playerJoinedEvent(msg.sender, now);
+        emit playerJoinedEvent(playerMap[msg.sender].owner, now, balance);
         return true;
     }
 
@@ -57,7 +57,8 @@ contract Survive is  Withdrawable, Pausable, Refundable {
         return _cure(msg.sender, msg.value);
     }
 
-    function infect(address _owner)  public isNotPaused() isOwner() returns (uint _infectedCount, bool _infected) {
+    function infect(address _owner) public isNotPaused() isOwner() returns (uint _infectedCount, bool _infected) {
+        emit playerAttemptInfectEvent(playerMap[_owner].owner);
         return _infect(_owner);
     }
 
@@ -78,7 +79,14 @@ contract Survive is  Withdrawable, Pausable, Refundable {
             }
         }
         emit gameSettledEvent(alive, prize, address(this).balance);
+
+        reset();
+
         return prize;
+    }
+
+    function resetGame() public isNotPaused() isOwner() returns (bool _reset) {
+        return reset();
     }
 
     function getPlayer(address _ownerAddress) public view returns( address _owner, bool _isAlive, bool _isInfected, uint _infectedTime, uint _immuneTime, uint _balance, bool _initialized ){
@@ -124,6 +132,10 @@ contract Survive is  Withdrawable, Pausable, Refundable {
         }
     }
 
+    function getPrizePool() public view returns (uint _prize) {
+        return address(this).balance;
+    }
+
     function _cure(address _owner, uint fee) internal returns (bool _cured) {
         bool cured = false;
         uint cureTime = now;
@@ -151,11 +163,13 @@ contract Survive is  Withdrawable, Pausable, Refundable {
     function _infect(address _owner) internal returns (uint _infectedCount, bool _infected) {
         bool infected = false;
 
-        if ( playerMap[_owner].isInfected != true && playerMap[_owner].immuneTime < now) {
+        if ( playerMap[_owner].isInfected == false && playerMap[_owner].immuneTime < now) {
             playerMap[_owner].isInfected = true;
             playerMap[_owner].infectedTime = now;
 
             emit playerInfectedEvent(playerMap[_owner].owner, playerMap[_owner].infectedTime);
+
+            infected = true;
         }
 
         if ( playerMap[_owner].balance > cureFee ) {
@@ -172,13 +186,14 @@ contract Survive is  Withdrawable, Pausable, Refundable {
     function killInfectedPlayers() internal returns (uint _aliveCount)
     {
         for (uint i=0; i<playerAddresses.length; i++)  {
-            if (playerMap[playerAddresses[i]].isInfected && playerMap[playerAddresses[i]].infectedTime + killTime <= now) {
-                playerMap[playerAddresses[i]].isInfected = false;
-                playerMap[playerAddresses[i]].infectedTime = 0;
-                playerMap[playerAddresses[i]].isAlive = false;
-                playerMap[playerAddresses[i]].immuneTime = 0;
+            address owner = playerAddresses[i];
+            if (playerMap[owner].isInfected && playerMap[owner].infectedTime + killTime <= now) {
+                playerMap[owner].isInfected = false;
+                playerMap[owner].infectedTime = 0;
+                playerMap[owner].isAlive = false;
+                playerMap[owner].immuneTime = 0;
 
-                emit playerKilledEvent(playerMap[playerAddresses[i]].owner, now);
+                emit playerKilledEvent(playerMap[owner].owner, now);
             }
         }
 
@@ -193,14 +208,20 @@ contract Survive is  Withdrawable, Pausable, Refundable {
             playerMap[playerAddresses[i]].infectedTime = 0;
             playerMap[playerAddresses[i]].immuneTime = 0;
         }
+
+        emit gameResetEvent(now);
+
         return true;
     }
 
+    event playerAttemptInfectEvent(address owner);
     event playerInfectedEvent(address owner, uint infectedTime);
     event playerKilledEvent(address owner, uint killTime);
     event playerAwardedEvent(address owner, uint prize);
-    event gameSettledEvent(uint winners, uint prize, uint contractBalance);
     event playerCuredEvent(address owner, bool cured, uint cureTime);
     event playerBalanceUpdatedEvent(address owner, uint balance);
-    event playerJoinedEvent(address player, uint joinTime);
+    event playerJoinedEvent(address player, uint joinTime, uint balance);
+
+    event gameSettledEvent(uint winners, uint prize, uint contractBalance);
+    event gameResetEvent(uint timestamp);
 }
