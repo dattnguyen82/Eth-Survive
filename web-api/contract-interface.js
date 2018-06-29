@@ -1,6 +1,7 @@
 let util = require('./survive-util');
+let environment = require('./environment');
 
-let ownerAccount = process.env.SURVIVOR_OWNER_ACCOUNT || '0x5c28e2e742092326f4F681d3e1039f517C92009c';
+let ownerAccount = environment.owner;
 
 let callContractMethod = async (f, account) => {
 	var result = null;
@@ -25,7 +26,7 @@ let sendContractMethod = async (f, account) => {
 };
 
 let init = async () => {
-	let surviveContract = await util.getContract(util.getWeb3("http://127.0.0.1:8545"));
+	let surviveContract = await util.getContract(util.getWeb3(environment.web3Provider_http));
 
 	//View Methods
 	exports.getPlayer = async (playerInfo) => {

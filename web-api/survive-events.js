@@ -1,6 +1,6 @@
 let util = require('./survive-util');
 let gamePersistence = require('./game-persistence');
-
+let environment = require('./environment');
 let joinedEvent = require('./event-joined');
 let infectedEvent = require('./event-infected');
 let curedEvent = require('./event-cured');
@@ -10,8 +10,9 @@ let playerBalanceUpdated = require('./event-balance-updated');
 let prizeEventAwarded = require('./event-prize-awarded');
 let gameResetEvent = require('./event-game-reset');
 
+
 let init = async() => {
-	let surviveContract = await util.getContract(util.getWeb3("ws://127.0.0.1:8545"));
+	let surviveContract = await util.getContract(util.getWeb3(environment.web3Provider_ws));
 
 	// All Events
 	surviveContract.events.allEvents({

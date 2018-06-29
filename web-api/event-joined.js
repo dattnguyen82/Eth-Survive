@@ -1,8 +1,9 @@
 let util = require('./survive-util');
 let gamePersistence = require('./game-persistence');
+let environment = require('./environment');
 
 var init = async () => {
-	let surviveContract = await util.getContract(util.getWeb3("ws://127.0.0.1:8545"));
+	let surviveContract = await util.getContract(util.getWeb3(environment.web3Provider_ws));
 
 	//Player Infected Event
 	surviveContract.events.playerJoinedEvent({

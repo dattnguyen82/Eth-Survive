@@ -1,9 +1,10 @@
 let util = require('./survive-util');
 let gamePersistence = require('./game-persistence');
 let ethContract = require('./contract-interface');
+let environment = require('./environment');
 
 var init = async () => {
-	let surviveContract = await util.getContract(util.getWeb3("ws://127.0.0.1:8545"));
+	let surviveContract = await util.getContract(util.getWeb3(environment.web3Provider_ws));
 
 	//Game Reset Event
 	surviveContract.events.gameResetEvent({

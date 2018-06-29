@@ -1,6 +1,7 @@
 let Web3 = require('web3');
+let environment = require('./environment');
 
-exports.contractABI = [
+let contractABI = [
 	{
 		"constant": false,
 		"inputs": [],
@@ -579,7 +580,7 @@ exports.contractABI = [
 		"type": "function"
 	}
 ]
-exports.contractAddress = process.env.SURVIVOR_CONTRACT_ADDRESS ||  '0x24f1c5c6ce6b2bedcf7c5daf58dc42d921d27542';
+let contractAddress = environment.contractAddress;
 
 //testing scope
 let fs = require('fs');
@@ -607,7 +608,7 @@ exports.getContract = async (web3) => {
 		var result = await loadAbi('/Users/212391398/source/sandbox/eth72/build/contracts/Survive.json');
 		exports.contractABI = result.abi;
 	}
-	return new web3.eth.Contract(exports.contractABI, exports.contractAddress);
+	return new web3.eth.Contract(contractABI, contractAddress);
 };
 
 exports.callContractMethod = async (f, account) => {
