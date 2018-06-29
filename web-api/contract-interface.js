@@ -1,6 +1,6 @@
 let util = require('./survive-util');
 
-let ownerAccount = process.env.SURVIVOR_OWNER_ACCOUNT || '0x8238cc3E34e0330203eb089869A374A902cAFE68';
+let ownerAccount = process.env.SURVIVOR_OWNER_ACCOUNT || '0x5c28e2e742092326f4F681d3e1039f517C92009c';
 
 let callContractMethod = async (f, account) => {
 	var result = null;
@@ -16,7 +16,7 @@ let callContractMethod = async (f, account) => {
 let sendContractMethod = async (f, account) => {
 	var result = null;
 	try {
-		result = await f.send({from: account});
+		result = await f.send({from: account, gas: 3000000});
 	}
 	catch (err) {
 		console.log(err);
@@ -29,7 +29,6 @@ let init = async () => {
 
 	//View Methods
 	exports.getPlayer = async (playerInfo) => {
-		console.log(playerInfo.address);
 		var result = await callContractMethod(surviveContract.methods.getPlayer(playerInfo.address), ownerAccount);
 		return result;
 	};
@@ -60,13 +59,18 @@ let init = async () => {
 	};
 
 	//Send Methods
-	exports.settleGame = async () => {
-		var result = await sendContractMethod(surviveContract.methods.settleGame(), ownerAccount);
+	exports.settleGame = async (forceKill) => {
+		var result = await sendContractMethod(surviveContract.methods.settleGame(forceKill), ownerAccount);
 		return result;
 	};
 
 	exports.infect = async (playerInfo) => {
 		var result = await sendContractMethod(surviveContract.methods.infect(playerInfo.address), ownerAccount);
+		return result;
+	};
+
+	exports.kill = async (playerInfo) => {
+		var result = await sendContractMethod(surviveContract.methods.killPlayer(playerInfo.address), ownerAccount);
 		return result;
 	};
 

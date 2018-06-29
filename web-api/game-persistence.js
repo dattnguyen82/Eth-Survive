@@ -24,6 +24,14 @@ let updatePlayerStatus = () => {
 	return "UPDATE survive.players SET status = $2, status_timestamp = to_timestamp($3) WHERE address = $1";
 };
 
+let updateAllPlayerStatuses = () => {
+	return "UPDATE survive.players SET status = $1, status_timestamp = to_timestamp($2)";
+};
+
+let updatePlayerBalance = () => {
+	return "UPDATE survive.players SET balance = $2 WHERE address = $1";
+};
+
 exports.upsertPlayer = async (player) => {
 	try {
 		let result = await persistence.query(selectPlayerQuery(),[player.address.toString()]);
@@ -91,7 +99,13 @@ exports.getRandomPlayers = async (count) => {
 
 exports.updatePlayerStatus = async (player) => {
 	try {
-		let result = await persistence.query(updatePlayerStatus(),[player.address, player.status, player.statusTime]);
+		var result = null;
+		if (player.address == null) {
+			result = await persistence.query(updateAllPlayerStatuses(), [player.status, player.statusTime]);
+		}
+		else {
+			result = await persistence.query(updatePlayerStatus(), [player.address, player.status, player.statusTime]);
+		}
 		return result.rows;
 	}
 	catch(ex)
@@ -100,4 +114,19 @@ exports.updatePlayerStatus = async (player) => {
 	}
 
 	return null;
+};
+
+exports.updatePlayerBalance = async (player) => {
+
+	try {
+		let result = await persistence.query(updatePlayerBalance(), [player.address, player.balance]);
+		return result.rows;
+	}
+	catch(ex)
+	{
+		console.error(ex);
+	}
+
+	return null;
+
 };

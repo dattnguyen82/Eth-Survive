@@ -45,7 +45,7 @@ contract('Survive', function(accounts) {
                                                             instance.infect(accounts[2]).then((results)=>{
 	                                                            assert.equal(playerInfectedEvent.get()[0].args.owner, accounts[2], "Player infected should be " + accounts[2]);
 	                                                            assert.equal(playerKilledEvent.get()[0].args.owner, accounts[2], "Player killed should be " + accounts[2]);
-                                                                instance.settleGame().then((results) => {
+                                                                instance.settleGame(false).then((results) => {
                                                                     assert.equal(playerAwardedEvent.get()[0].args.owner, accounts[1], "Prize owner should be " + accounts[1]);
                                                                     assert.equal(playerAwardedEvent.get()[0].args.prize.toNumber() > 0, true, "Prize should be greater than 0");
                                                                 })

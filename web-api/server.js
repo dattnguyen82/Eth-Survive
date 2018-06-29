@@ -1,8 +1,8 @@
 let express = require('express');
 let bodyParser = require('body-parser');
 let ethContract = require('./contract-interface');
-let gamePersistence = require('./game-persistence');
 let gameEngine = require('./game-engine');
+let gamePersistence = require('./game-persistence');
 
 let app = express();
 let jsonParser = bodyParser.json();
@@ -30,15 +30,12 @@ app.get('/players', async (req, res) =>
     return res.json(result);
 });
 
-// s( address _owner, bool _isAlive, bool _isInfected, uint _infectedTime, uint _immuneTime, uint _balance, bool _initialized )
 app.get('/players/:address', async (req, res) => {
 	var playerInfo = {
 	    address: req.params.address
     };
 
     var player = await ethContract.getPlayer(playerInfo);
-
-    console.log(player);
 
 	var result = {
 	    address: player._owner,
@@ -53,6 +50,13 @@ app.get('/players/:address', async (req, res) => {
 	return res.json(result);
 });
 
+
+app.get('/all', async (req, res) =>
+{
+	var result = await gamePersistence.getPlayers(null);
+	return res.json(result);
+});
+
 app.get('/game', async (req, res) =>
 {
     var result = await gameEngine.getGameData();
@@ -61,17 +65,31 @@ app.get('/game', async (req, res) =>
 
 app.get('/infect', async (req, res) =>
 {
-	var result = await exports.infectRandomPlayer();
+	var result = await gameEngine.infectRandomPlayer();
 	return res.json(result);
 });
-
 
 app.get('/settle', async (req, res) =>
 {
-	var result = await ethContract.settleGame();
+	var result = await ethContract.settleGame(true);
 	return res.json(result);
 });
 
+app.get('/reset', async (req, res) =>
+{
+	var result = await ethContract.resetGame();
+	return res.json(result);
+});
+
+app.get('/kill/:address', async (req, res) =>
+{
+	var playerInfo = {
+		address: req.params.address
+	};
+
+	var result = await ethContract.kill(playerInfo);
+	return res.json(result);
+});
 
 app.get('/clock', (req, res) =>
 {

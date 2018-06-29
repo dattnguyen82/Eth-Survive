@@ -12,7 +12,7 @@ contract('Survive', function(accounts) {
 		return Survive.new( entryFee, cureFee, killTime, cureTime )
 			.then(function(instance) {
 				var gameSettledEvent = instance.gameSettledEvent();
-				instance.settleGame().then((results) => {
+				instance.settleGame(false).then((results) => {
                     if (gameSettledEvent.get().length >= 1) {
 	                    assert.equal(gameSettledEvent.get()[0].args.winners.toNumber(), 0, "No winners, must be more than 2 players to settle game");
 	                    assert.equal(gameSettledEvent.get()[0].args.prize.toNumber(), 0, "No prize, must be more than 2 players to settle game");
@@ -21,4 +21,3 @@ contract('Survive', function(accounts) {
 	});
 
 });
-truffle

@@ -62,13 +62,17 @@ contract Survive is  Withdrawable, Pausable, Refundable {
         return _infect(_owner);
     }
 
-    function settleGame() public isNotPaused() isOwner() returns (uint _prize) {
+    function settleGame(bool _forceKillInfectedPlayers) public isNotPaused() isOwner() returns (uint _prize) {
         uint prize = 0;
         address winner = address(0);
         uint alive = getAliveCount();
         uint prizeBalance = address(this).balance;
-        if (address(this).balance >= entryFee.mul(2))
-        {
+
+        if (_forceKillInfectedPlayers) {
+            _killInfectedPlayers(true);
+        }
+
+        if (address(this).balance >= entryFee.mul(2)) {
             prize = prizeBalance.div(alive+1); //survive game contract keeps the equivalent of 1 entry fee for processing
             for (uint i=0; i<playerAddresses.length; i++)  {
                 if (playerMap[playerAddresses[i]].isAlive==true)  {
@@ -83,6 +87,10 @@ contract Survive is  Withdrawable, Pausable, Refundable {
         reset();
 
         return prize;
+    }
+
+    function killPlayer(address _ownerAddress) public isOwner() returns (address _owner) {
+        return _kill(_ownerAddress);
     }
 
     function resetGame() public isNotPaused() isOwner() returns (bool _reset) {
@@ -121,40 +129,57 @@ contract Survive is  Withdrawable, Pausable, Refundable {
         return playerAddresses.length;
     }
 
+    function getPrizePool() public view returns (uint _prize) {
+        return address(this).balance;
+    }
+
     function () isNotPaused() public payable {
-        if (playerMap[msg.sender].initialized == false)
-        {
+        if (playerMap[msg.sender].initialized == false){
             join();
         }
-        else
-        {
-            cure();
+        else if ( playerMap[msg.sender].isAlive == true && playerMap[msg.sender].isInfected ) {
+            _cure(msg.sender,msg.value );
+        }
+        else {
+            _reentry(msg.sender, msg.value);
         }
     }
 
-    function getPrizePool() public view returns (uint _prize) {
-        return address(this).balance;
+    function _updateBalance(address _ownerAddress, uint amount, bool add) public {
+
+        if (add==true){
+            playerMap[_ownerAddress].balance = playerMap[_ownerAddress].balance.add(amount);
+        }
+        else {
+            playerMap[_ownerAddress].balance = playerMap[_ownerAddress].balance.sub(amount);
+        }
+
+        emit playerBalanceUpdatedEvent(playerMap[_ownerAddress].owner, playerMap[_ownerAddress].balance);
+    }
+
+    function _reentry(address _ownerAddress, uint amount) internal returns (address _owner, bool _isAlive, bool _isInfected, uint _infectedTime, uint _immuneTime, uint _balance, bool _initialized) {
+        _updateBalance(_ownerAddress, amount, true);
+        return getPlayer(_ownerAddress);
     }
 
     function _cure(address _owner, uint fee) internal returns (bool _cured) {
         bool cured = false;
         uint cureTime = now;
 
-        if (playerMap[_owner].balance + fee < cureFee) {
+        _updateBalance(_owner, fee, true);
+
+        if (  playerMap[_owner].balance + fee < cureFee  ) {
             revert();
         }
-
-        playerMap[_owner].balance = playerMap[_owner].balance.add(fee);
 
         if ( playerMap[_owner].isInfected )
         {
             playerMap[_owner].isInfected = false;
             playerMap[_owner].immuneTime = cureTime + cooldown;
-            playerMap[_owner].balance = playerMap[_owner].balance.sub(cureFee);
+            _updateBalance(_owner, cureFee, false);
             cured = true;
         }
 
-        emit playerBalanceUpdatedEvent(playerMap[_owner].owner, playerMap[_owner].balance);
         emit playerCuredEvent(playerMap[_owner].owner, cured, cureTime);
 
         return cured;
@@ -178,22 +203,28 @@ contract Survive is  Withdrawable, Pausable, Refundable {
 
         uint count = getInfectedCount();
 
-        killInfectedPlayers();
+        _killInfectedPlayers(false);
 
         return (count, infected);
     }
 
-    function killInfectedPlayers() internal returns (uint _aliveCount)
+    function _kill(address _ownerAddress) internal returns ( address _owner ) {
+        playerMap[_ownerAddress].isInfected = false;
+        playerMap[_ownerAddress].infectedTime = 0;
+        playerMap[_ownerAddress].isAlive = false;
+        playerMap[_ownerAddress].immuneTime = 0;
+
+        emit playerKilledEvent(playerMap[_ownerAddress].owner, now);
+
+        return playerMap[_ownerAddress].owner;
+    }
+
+    function _killInfectedPlayers(bool force) internal returns (uint _aliveCount)
     {
         for (uint i=0; i<playerAddresses.length; i++)  {
             address owner = playerAddresses[i];
-            if (playerMap[owner].isInfected && playerMap[owner].infectedTime + killTime <= now) {
-                playerMap[owner].isInfected = false;
-                playerMap[owner].infectedTime = 0;
-                playerMap[owner].isAlive = false;
-                playerMap[owner].immuneTime = 0;
-
-                emit playerKilledEvent(playerMap[owner].owner, now);
+            if ( (playerMap[owner].isInfected && playerMap[owner].infectedTime + killTime <= now) || (playerMap[owner].isInfected && force==true)) {
+                _kill(owner);
             }
         }
 
@@ -203,10 +234,16 @@ contract Survive is  Withdrawable, Pausable, Refundable {
     function reset() internal returns (bool _reset)
     {
         for (uint i=0; i<playerAddresses.length; i++)  {
-            playerMap[playerAddresses[i]].isInfected = false;
-            playerMap[playerAddresses[i]].isAlive = false;
-            playerMap[playerAddresses[i]].infectedTime = 0;
-            playerMap[playerAddresses[i]].immuneTime = 0;
+            address owner = playerAddresses[i];
+
+            if (playerMap[owner].balance >= entryFee) {
+                playerMap[owner].isAlive = true;
+                _updateBalance(owner, entryFee, false);
+            }
+
+            playerMap[owner].isInfected = false;
+            playerMap[owner].infectedTime = 0;
+            playerMap[owner].immuneTime = 0;
         }
 
         emit gameResetEvent(now);

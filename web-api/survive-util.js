@@ -381,12 +381,36 @@ exports.contractABI = [
 	},
 	{
 		"constant": false,
-		"inputs": [],
+		"inputs": [
+			{
+				"name": "_forceKillInfectedPlayers",
+				"type": "bool"
+			}
+		],
 		"name": "settleGame",
 		"outputs": [
 			{
 				"name": "_prize",
 				"type": "uint256"
+			}
+		],
+		"payable": false,
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"constant": false,
+		"inputs": [
+			{
+				"name": "_ownerAddress",
+				"type": "address"
+			}
+		],
+		"name": "killPlayer",
+		"outputs": [
+			{
+				"name": "_owner",
+				"type": "address"
 			}
 		],
 		"payable": false,
@@ -531,9 +555,31 @@ exports.contractABI = [
 		"payable": false,
 		"stateMutability": "view",
 		"type": "function"
+	},
+	{
+		"constant": false,
+		"inputs": [
+			{
+				"name": "_ownerAddress",
+				"type": "address"
+			},
+			{
+				"name": "amount",
+				"type": "uint256"
+			},
+			{
+				"name": "add",
+				"type": "bool"
+			}
+		],
+		"name": "_updateBalance",
+		"outputs": [],
+		"payable": false,
+		"stateMutability": "nonpayable",
+		"type": "function"
 	}
 ]
-exports.contractAddress = process.env.SURVIVOR_CONTRACT_ADDRESS ||  '0x66fedc1e7875a906602a86f509d36f8fdf0d858d';
+exports.contractAddress = process.env.SURVIVOR_CONTRACT_ADDRESS ||  '0x24f1c5c6ce6b2bedcf7c5daf58dc42d921d27542';
 
 //testing scope
 let fs = require('fs');

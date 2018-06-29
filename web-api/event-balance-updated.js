@@ -1,24 +1,24 @@
 let util = require('./survive-util');
+let Web3 = require('web3');
 let gamePersistence = require('./game-persistence');
 
 var init = async () => {
 	let surviveContract = await util.getContract(util.getWeb3("ws://127.0.0.1:8545"));
 
-	//Player Infected Event
-	surviveContract.events.playerInfectedEvent({
+	//Player Balance Event
+	surviveContract.events.playerBalanceUpdatedEvent({
 		fromBlock: 0
 	}, async (error, event) =>  {
-		console.log(event);
 		let player = {
 			address: event.returnValues.owner,
-			status: 2,
-			statusTime:  event.returnValues.infectedTime
+			balance: Web3.utils.fromWei(event.returnValues.balance, "ether")
 		};
-		var result = await gamePersistence.updatePlayerStatus(player);
+		var result = await gamePersistence.updatePlayerBalance(player);
+		console.log("Player " + player.address + " balanced updated: " + player.balance);
 	}).on ('data', (event) => {
-		console.log(event); // same results as the optional callback above
+		// console.log(event); // same results as the optional callback above
 	}).on('changed', (event) => {
-		console.log(event);
+		// console.log(event);
 	}).on('error', console.error);
 };
 
