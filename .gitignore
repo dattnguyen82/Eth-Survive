@@ -39,6 +39,8 @@ build/Release
 /.idea
 .idea/
 
+config/
+
 # Dependency directories
 node_modules/
 jspm_packages/

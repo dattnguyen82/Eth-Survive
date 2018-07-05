@@ -621,3 +621,7 @@ exports.callContractMethod = async (f, account) => {
 	}
 	return result;
 };
+
+exports.toEther = (gwei) => {
+   return	Web3.utils.fromWei(gwei, "ether")
+};

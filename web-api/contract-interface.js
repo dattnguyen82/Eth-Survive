@@ -14,16 +14,17 @@ let callContractMethod = async (f, account) => {
 	return result;
 };
 
-let sendContractMethod = async (f, account) => {
+let sendContractMethod = async (f, account, gas) => {
 	var result = null;
 	try {
-		result = await f.send({from: account, gas: 3000000});
+		result = await f.send({from: account, gas: gas});
 	}
 	catch (err) {
 		console.log(err);
 	}
 	return result;
 };
+
 
 let init = async () => {
 	let surviveContract = await util.getContract(util.getWeb3(environment.web3Provider_http));
@@ -61,22 +62,34 @@ let init = async () => {
 
 	//Send Methods
 	exports.settleGame = async (forceKill) => {
-		var result = await sendContractMethod(surviveContract.methods.settleGame(forceKill), ownerAccount);
+		let gas = await surviveContract.methods.settleGame(forceKill).estimateGas({from: ownerAccount});
+		console.log("gas required: " + gas);
+
+		var result = await sendContractMethod(surviveContract.methods.settleGame(forceKill), ownerAccount, gas);
 		return result;
 	};
 
 	exports.infect = async (playerInfo) => {
-		var result = await sendContractMethod(surviveContract.methods.infect(playerInfo.address), ownerAccount);
+		let gas = await surviveContract.methods.infect(playerInfo.address).estimateGas({from: ownerAccount});
+		console.log("gas required: " + gas);
+
+		var result = await sendContractMethod(surviveContract.methods.infect(playerInfo.address), ownerAccount, gas);
 		return result;
 	};
 
 	exports.kill = async (playerInfo) => {
-		var result = await sendContractMethod(surviveContract.methods.killPlayer(playerInfo.address), ownerAccount);
+		let gas = await surviveContract.methods.killPlayer(playerInfo.address).estimateGas({from: ownerAccount});
+		console.log("gas required: " + gas);
+
+		var result = await sendContractMethod(surviveContract.methods.killPlayer(playerInfo.address), ownerAccount, gas);
 		return result;
 	};
 
 	exports.resetGame = async () => {
-		var result = await sendContractMethod(surviveContract.methods.resetGame(), ownerAccount);
+		let gas = await surviveContract.methods.resetGame.estimateGas({from: ownerAccount});
+		console.log("gas required: " + gas);
+
+		var result = await sendContractMethod(surviveContract.methods.resetGame(), ownerAccount, gas);
 		return result;
 	};
 };

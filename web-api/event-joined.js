@@ -13,7 +13,7 @@ var init = async () => {
 			address: event.returnValues.player,
 			joinTime: parseInt(event.returnValues.joinTime),
 			blockIdx: event.blockNumber,
-			balance: event.returnValues.balance,
+			balance: util.toEther(event.returnValues.balance),
 			blockHash: event.blockHash
 		};
 		var result = await gamePersistence.upsertPlayer(player);

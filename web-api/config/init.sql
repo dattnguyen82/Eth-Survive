@@ -8,8 +8,8 @@ CREATE TABLE survive.players
   address TEXT DEFAULT NULL,
   join_timestamp TIMESTAMP default now(),
   block_idx INTEGER default null,
-  balance INTEGER default null,
+  balance DOUBLE PRECISION default null,
   block_hash TEXT default null,
   status INTEGER default 1,
-  status_timestamp TIMESTAMP default null,
+  status_timestamp TIMESTAMP default null
 );

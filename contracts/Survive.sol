@@ -44,6 +44,7 @@ contract Survive is  Withdrawable, Pausable, Refundable {
         killTime = _killTime;
     }
 
+    //Game Functions
     function join() isNotPaused() public payable returns (bool _joined) {
         require(msg.value >= entryFee);
         uint balance = msg.value.sub(entryFee);
@@ -60,6 +61,10 @@ contract Survive is  Withdrawable, Pausable, Refundable {
     function infect(address _owner) public isNotPaused() isOwner() returns (uint _infectedCount, bool _infected) {
         emit playerAttemptInfectEvent(playerMap[_owner].owner);
         return _infect(_owner);
+    }
+
+    function killPlayer(address _ownerAddress) public isOwner() returns (address _owner) {
+        return _kill(_ownerAddress);
     }
 
     function settleGame(bool _forceKillInfectedPlayers) public isNotPaused() isOwner() returns (uint _prize) {
@@ -89,14 +94,11 @@ contract Survive is  Withdrawable, Pausable, Refundable {
         return prize;
     }
 
-    function killPlayer(address _ownerAddress) public isOwner() returns (address _owner) {
-        return _kill(_ownerAddress);
-    }
-
     function resetGame() public isNotPaused() isOwner() returns (bool _reset) {
         return reset();
     }
 
+    //Game/Player Info
     function getPlayer(address _ownerAddress) public view returns( address _owner, bool _isAlive, bool _isInfected, uint _infectedTime, uint _immuneTime, uint _balance, bool _initialized ){
         return ( playerMap[_ownerAddress].owner, playerMap[_ownerAddress].isAlive, playerMap[_ownerAddress].isInfected, playerMap[_ownerAddress].infectedTime, playerMap[_ownerAddress].immuneTime,  playerMap[_ownerAddress].balance,  playerMap[_ownerAddress].initialized  );
     }
@@ -133,6 +135,12 @@ contract Survive is  Withdrawable, Pausable, Refundable {
         return address(this).balance;
     }
 
+    function getPlayerByIndex(uint index) public isOwner() view returns ( address _owner, bool _isAlive, bool _isInfected, uint _infectedTime, uint _immuneTime, uint _balance, bool _initialized ) {
+
+        return getPlayer(playerAddresses[index]);
+    }
+
+    //Payable Fallback
     function () isNotPaused() public payable {
         if (playerMap[msg.sender].initialized == false){
             join();
@@ -145,8 +153,8 @@ contract Survive is  Withdrawable, Pausable, Refundable {
         }
     }
 
-    function _updateBalance(address _ownerAddress, uint amount, bool add) public {
-
+    //Internal Functions
+    function _updateBalance(address _ownerAddress, uint amount, bool add) internal {
         if (add==true){
             playerMap[_ownerAddress].balance = playerMap[_ownerAddress].balance.add(amount);
         }
@@ -251,6 +259,8 @@ contract Survive is  Withdrawable, Pausable, Refundable {
         return true;
     }
 
+
+    //Player Events
     event playerAttemptInfectEvent(address owner);
     event playerInfectedEvent(address owner, uint infectedTime);
     event playerKilledEvent(address owner, uint killTime);
@@ -259,6 +269,7 @@ contract Survive is  Withdrawable, Pausable, Refundable {
     event playerBalanceUpdatedEvent(address owner, uint balance);
     event playerJoinedEvent(address player, uint joinTime, uint balance);
 
+    //Game Events
     event gameSettledEvent(uint winners, uint prize, uint contractBalance);
     event gameResetEvent(uint timestamp);
 }

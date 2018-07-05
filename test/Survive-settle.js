@@ -2,8 +2,8 @@ var Survive = artifacts.require("./Survive.sol");
 
 contract('Survive', function(accounts) {
 
-    let entryFee = web3.toWei(1, "ether");
-    let cureFee = web3.toWei(1, "ether");
+    let entryFee = web3.toWei(0.001, "ether");
+    let cureFee = web3.toWei(0.001, "ether");
 
     let killTime = 0;
     let cureTime = 0;
