@@ -1,13 +1,13 @@
 {
-  "name": "hot-dice",
+  "name": "eth-survivor-pool",
   "version": "1.0.0",
-  "description": "hot dice api",
+  "description": "eth-survivor-pool api",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js"
   },
-  "author": "",
+  "author": "https://github.com/dattnguyen82",
   "license": "ISC",
   "dependencies": {
     "body-parser": "^1.18.2",
