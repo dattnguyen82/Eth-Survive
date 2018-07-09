@@ -36,7 +36,7 @@ var settleGameJob = scheduler.scheduleJob('* * 0 * * *', async () => {
 
 	var gameData = await exports.getGameData(false);
 
-	console.log("Setting Game");
+	console.log("Settling Game");
 	console.log(gameData);
 
 	var result = await ethContract.settleGame();
